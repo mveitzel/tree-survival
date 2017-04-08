@@ -1,0 +1,51 @@
+
+Full.model<-function(){
+###------------------------------------------------------------------------------------------------
+	##Functional form (and timeseries/state-observation relationships)
+###------------------------------------------------------------------------------------------------
+	for(treenum in 1:n.trees) {
+
+		for(yr in (start.year[treenum]+1):end.year[treenum]){
+
+			z[treenum,yr] ~ dbern(P[treenum,yr])
+
+			# dependency on the previous state
+			P[treenum,yr] <- z[treenum,yr-1]*Psurv[treenum,yr]
+
+			# link function, linear predictors
+			logit(Psurv[treenum,yr])<- Intercept[treenum]+i.ba*ba[plotnum[treenum],yr]
++s.overall*size[treenum,yr] 
+			}
+
+		}
+
+
+
+###------------------------------------------------------------##
+	##Random effects
+###----------------------------------------------------------------##
+	for(treenum in 1:n.trees) {
+			Intercept[treenum] <- i.overall+i.plot[plotnum[treenum]]
+	}
+	#Plot random effects
+	for (j in 1:n.plots) {
+		i.plot[j] ~dnorm(0,i.plot.prec)
+	}
+
+
+###----------------------------##
+	##Priors
+###----------------------------##
+	#precisions 
+	i.plot.prec<- pow(i.plot.sd,-2)
+	i.plot.sd ~ dunif(0, 100)
+
+	#means (overall intercept, slopes for covariates)
+	i.overall<-logit(li.overall)
+	li.overall~dunif(0, 1)
+	i.ba ~ dnorm(0, 1.0E-6)
+	s.overall ~ dnorm(0, 1.0E-6)
+
+}
+
+
